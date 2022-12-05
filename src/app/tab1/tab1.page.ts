@@ -1,5 +1,6 @@
 import { TasksService } from './../services/tasks.service';
 import { Component } from '@angular/core';
+import { Task } from '../models/task';
 
 @Component({
   selector: 'app-tab1',
@@ -8,27 +9,34 @@ import { Component } from '@angular/core';
 })
 export class Tab1Page {
 
-  public tasks: string[];
-  public task: string;
+  public tasks: Task[];
+  public task: Task;
   
   constructor(private taskService:TasksService) {
-    this.tasks = this.taskService.getTasks();
-    this.task = "algo";
+    this.taskService.getTasks().subscribe(data =>{
+      this.tasks = data.map(e => {
+        return {
+          id: e.payload.doc.id,
+          ...(e.payload.doc.data() as Task)
+        }
+      })
+    })
+    this.task = {
+      completed: false,
+      txt: 'algo'
+    };
    }
  
    public addTask() {
-     this.taskService.addTask(this.task);
-     this.tasks=this.taskService.getTasks();
-     console.log(this.tasks);
-     this.task="";
+    this.taskService.addTask(this.task);
+    this.task.txt=""; 
    }
  
-   public removeTask(pos:number) {
-     this.taskService.removeTask(pos);
-     this.tasks = this.taskService.getTasks();
+   public removeTask(id:string) {
+    this.taskService.removeTask(id);
    }
 
-   public completeTask(pos: number){
-    this.taskService.completeTask(pos);
+   public completeTask(id: string){
+    this.taskService.completeTask(id);
    }
 }

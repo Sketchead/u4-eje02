@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-
+import { AngularFirestore } from '@angular/fire/compat/firestore'
+import { Task } from '../models/task';
 @Injectable({
   providedIn: 'root'
 })
@@ -8,33 +9,34 @@ export class TasksService {
   private tasksU: string[] = [];
   private tasksC: string[] = [];
 
-  constructor() { 
+  constructor(private fs: AngularFirestore) { 
     this.tasksU.push("Tarea 1");
     this.tasksU.push("Tarea 2");
+    const t1 = {txt: 'jola', completed: false}
   }
-  public getTasks():string[] {
-    return this.tasksU;
-  }
-
-  public getCompleted():string[] {
-    return this.tasksC;
+  public getTasks() {
+    /* return this.tasksU; */
+    return this.fs.collection('tareas',ref => ref.where('completed', '==', false)).snapshotChanges();
   }
 
-  public addTask(task:string) {
-    this.tasksU.push(task);
+  public getCompleted() {
+    /* return this.tasksC; */
+    return this.fs.collection('tareas',ref => ref.where('completed', '==', true)).snapshotChanges();
   }
 
-  public removeTask(pos:number){
-    this.tasksU.splice(pos, 1);
+  public addTask(task:Task) {
+    this.fs.collection('tareas').add(task)
   }
 
-  public completeTask(pos:number){
-    this.tasksC.push(this.tasksU[pos]);
-    this.tasksU.splice(pos, 1);
+  public removeTask(id:string){
+    this.fs.collection('tareas').doc(id).delete()
   }
 
-  public uncompleteTask(pos:number){
-    this.tasksU.push(this.tasksC[pos]);
-    this.tasksC.splice(pos, 1);
+  public completeTask(id:string){
+    this.fs.collection('tareas').doc(id).update({completed:true})
+  }
+
+  public uncompleteTask(id:string){
+    this.fs.collection('tareas').doc(id).update({completed:false})
   }
 }
